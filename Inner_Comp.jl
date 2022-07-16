@@ -229,11 +229,40 @@ function Revolution(colony::Country, chance::Float64, r::Vector{Int64}, p::Vecto
     return colony
 end
 
+
+function Assimilate(colony::Country, emperor::Country, r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64}, d_bar::Vector{Int64},
+    e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64})
+    max_job = maximum(colony.representation)
+    for i = 1:length(colony.representation)
+        if colony.representation[i]>0 && emperor.representation[i]>0
+            if emperor.representation[i] < colony.representation[i]
+                for j = 1:length(colony.representation)
+                    if emperor.representation[i] <= colony.representation[j] < colony.representation[i]
+                        colony.representation[j] += 1
+                    end
+                end
+                colony.representation[i] = emperor.representation[i]
+            end
+            if emperor.representation[i] > colony.representation[i]
+                for j = 1:length(colony.representation)
+                    if colony.representation[i] < colony.representation[j] <= emperor.representation[i]
+                        colony.representation[j] -= 1
+                    end
+                end
+                colony.representation[i] = min(emperor.representation[i], max_job)
+            end
+        end
+    end
+    colony.power = Calculate_from_representation(colony.representation, r, p, d, d_bar, e, w, S)
+end
+
+
 function Inner_Competition(Empires::Vector{Empire}, r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64}, d_bar::Vector{Int64},
         e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64}, roulette::Vector{Int}, n_iter::Int, max_iter::Int)
     for emp = 1:length(Empires)
         for c = 1:length(Empires[emp].colonies)
 #             probs = roulette/sum(roulette)
+            Assimilate(Empires[emp].colonies[c], Empires[emp].emperor, r, p, d, d_bar, e, w, S)
             probs = [0.4, 0.2, 0.4, 0.0]
             random_number = rand()
             which = 0

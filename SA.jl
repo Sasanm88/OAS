@@ -13,7 +13,7 @@ function Simulated_Anealing(order::Int, Tao::Int, R::Int, instance::Int, n_emp::
             Cooling_steps, n_emp, eps, popsize_multiplier, stopping_count)
         if i%50==0
 #             println(roulette)
-#             println("In step ",i, ", the temperature is ",round(t, digits=2),", the best function is: ", best, " roulet: ", roulette)
+            println("In step ",i, ", the temperature is ",round(t, digits=2),", the best function is: ", best, " roulet: ", roulette)
 # #             println([emp.emperor.power for emp in Empires])
         end
         delete_at = Int[]
