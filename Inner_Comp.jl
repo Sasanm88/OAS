@@ -2,7 +2,8 @@ function Swap_n(colony::Country, r::Vector{Int64}, p::Vector{Int64}, d::Vector{I
         e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64}, roulette::Vector{Int}, n_iter::Int, max_iter::Int)
     rep = copy(colony.representation)
     n_jobs = length(p)
-    n_swap = max(Int(floor(n_jobs*(1-n_iter/max_iter)/2)), 1)
+    n_swap = max(Int(floor(n_jobs*(1-n_iter/max_iter)/20)), 1)
+    # n_swap = 1
     swap_pairs = sample(1:n_jobs, 2*n_swap, replace=false)
     for i=1:n_swap
         rep[swap_pairs[i]], rep[swap_pairs[n_swap+i]] = rep[swap_pairs[n_swap+i]], rep[swap_pairs[i]]
@@ -231,7 +232,7 @@ end
 
 
 function Assimilate(colony::Country, emperor::Country, r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64}, d_bar::Vector{Int64},
-    e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64})
+    e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64})  
     max_job = maximum(colony.representation)
     for i = 1:length(colony.representation)
         if colony.representation[i]>0 && emperor.representation[i]>0
