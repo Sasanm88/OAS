@@ -27,7 +27,7 @@ include("SA.jl")
 # for i in Empires[4].colonies[5].representation
 #     print(i, " ")
 # end
-function test()
+function test(num_runs::Int)
     order = 50
     Tao = 3
     R = 5
@@ -41,14 +41,14 @@ function test()
     Cooling_steps = 1000
     obj_sum = 0.0
     time_sum = 0.0
-    for i=1:10
+    for i=1:num_runs
         best , run_time = Simulated_Anealing(order, Tao, R, instance, n_emp, eps, popsize_multiplier, stopping_count, t0, tN, Cooling_steps)
         obj_sum += best
         time_sum += run_time
         println("Objective=", best, " run time=",run_time)
     end
-    println("Mean Objective=", obj_sum/10)
-    println(time_sum/10, " seconds on average")
+    println("Mean Objective=", obj_sum/num_runs)
+    println(time_sum/num_runs, " seconds on average")
 end
 
-test()
+test(10)

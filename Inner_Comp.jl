@@ -232,28 +232,98 @@ end
 
 
 function Assimilate(colony::Country, emperor::Country, r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64}, d_bar::Vector{Int64},
-    e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64})  
+    e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64}, prob::Float64)  
     max_job = maximum(colony.representation)
-    for i = 1:length(colony.representation)
-        if colony.representation[i]>0 && emperor.representation[i]>0
-            if emperor.representation[i] < colony.representation[i]
-                for j = 1:length(colony.representation)
-                    if emperor.representation[i] <= colony.representation[j] < colony.representation[i]
+    n_job = length(colony.representation)
+    for i = 1:n_job
+        if emperor.representation[i]>0
+            if colony.representation[i]>0 
+                if emperor.representation[i] < colony.representation[i]
+                    for j = 1:n_job
+                        if emperor.representation[i] <= colony.representation[j] < colony.representation[i]
+                            colony.representation[j] += 1
+                        end
+                    end
+                    colony.representation[i] = emperor.representation[i]
+                end
+                if emperor.representation[i] > colony.representation[i]
+                    for j = 1:n_job
+                        if colony.representation[i] < colony.representation[j] <= emperor.representation[i]
+                            colony.representation[j] -= 1
+                        end
+                    end
+                    colony.representation[i] = min(emperor.representation[i], max_job)
+                end
+            elseif rand() < prob
+                for j = 1:n_job
+                    if colony.representation[j] >= emperor.representation[i]
                         colony.representation[j] += 1
                     end
                 end
-                colony.representation[i] = emperor.representation[i]
-            end
-            if emperor.representation[i] > colony.representation[i]
-                for j = 1:length(colony.representation)
-                    if colony.representation[i] < colony.representation[j] <= emperor.representation[i]
-                        colony.representation[j] -= 1
-                    end
-                end
+                max_job += 1
                 colony.representation[i] = min(emperor.representation[i], max_job)
             end
         end
     end
+    
+    colony.power = Calculate_from_representation(colony.representation, r, p, d, d_bar, e, w, S)
+end
+
+function Assimilate2(colony::Country, emperor::Country, r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64}, d_bar::Vector{Int64},
+    e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64})  
+    new_colony = copy(emperor.representation)
+    max_job = maximum(new_colony)
+    n_job = length(colony.representation)
+    for i = 1:n_job
+        if colony.representation[i]>0
+            if new_colony[i]>0 
+                if colony.representation[i] < new_colony[i]
+                    for j = 1:n_job
+                        if colony.representation[i] <= new_colony[j] < new_colony[i]
+                            new_colony[j] += 1
+                        end
+                    end
+                    new_colony[i] = colony.representation[i]
+                end
+                if colony.representation[i] > colony.representation[i]
+                    for j = 1:length(colony.representation)
+                        if new_colony[i] < new_colony[j] <= colony.representation[i]
+                            new_colony[j] -= 1
+                        end
+                    end
+                    new_colony[i] = min(colony.representation[i], max_job)
+                end
+            end
+        end
+    end
+    colony.representation = new_colony
+    colony.power = Calculate_from_representation(colony.representation, r, p, d, d_bar, e, w, S)
+end
+
+function Assimilate_effecient(colony::Country, emperor::Country, r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64}, d_bar::Vector{Int64},
+    e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64})  
+    n_jobs = length(emperor.representation)
+    justC = zeros(Int, n_jobs)
+    newC = zeros(Int, n_jobs)
+    for i=1:n_jobs
+        if colony.representation[i]>0 
+            if emperor.representation[i]>0
+                newC[emperor.representation[i]] = i
+            else
+                justC[colony.representation[i]] = i
+            end
+        end
+    end
+    deleteat!(justC, findall(x->x==0,justC))
+    index = findfirst(x->x==0, newC)
+    for job in justC
+        newC[index] = job
+        while index <= n_jobs && newC[index] != 0
+            index +=1
+        end
+    end
+    deleteat!(newC, findall(x->x==0,newC))
+    colony.representation = Convert_to_representation(n_jobs, newC)
     colony.power = Calculate_from_representation(colony.representation, r, p, d, d_bar, e, w, S)
 end
 
@@ -263,7 +333,8 @@ function Inner_Competition(Empires::Vector{Empire}, r::Vector{Int64}, p::Vector{
     for emp = 1:length(Empires)
         for c = 1:length(Empires[emp].colonies)
 #             probs = roulette/sum(roulette)
-            Assimilate(Empires[emp].colonies[c], Empires[emp].emperor, r, p, d, d_bar, e, w, S)
+            Assimilate(Empires[emp].colonies[c], Empires[emp].emperor, r, p, d, d_bar, e, w, S, 0.2)
+            Assimilate2(Empires[emp].colonies[c], Empires[emp].emperor, r, p, d, d_bar, e, w, S)
             probs = [0.4, 0.2, 0.4, 0.0]
             random_number = rand()
             which = 0
