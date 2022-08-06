@@ -1,8 +1,8 @@
 function Swap_n(colony::Country, r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64}, d_bar::Vector{Int64},
-        e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64}, roulette::Vector{Int}, n_iter::Int, max_iter::Int)
+        e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64}, roulette::Vector{Int}, n_iter::Int, max_iter::Int, swap_div::Int)
     rep = copy(colony.representation)
     n_jobs = length(p)
-    n_swap = max(Int(floor(n_jobs*(1-n_iter/max_iter)/20)), 1)
+    n_swap = max(Int(floor(n_jobs*(1-n_iter/max_iter)/swap_div)), 1)
     # n_swap = 1
     swap_pairs = sample(1:n_jobs, 2*n_swap, replace=false)
     for i=1:n_swap
@@ -23,10 +23,10 @@ end
 
 
 function Perm_n(colony::Country, r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64}, d_bar::Vector{Int64},
-        e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64}, roulette::Vector{Int}, n_iter::Int, max_iter::Int)
+        e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64}, roulette::Vector{Int}, n_iter::Int, max_iter::Int, perm_div::Int)
     rep = copy(colony.representation)
     n_jobs = length(rep)
-    n_perm = max(Int(floor(n_jobs*(1-n_iter/max_iter)/5)), 3)
+    n_perm = max(Int(floor(n_jobs*(1-n_iter/max_iter)/perm_div)), 3)
     perm_jobs = sample(1:n_jobs, n_perm, replace=false)
     perm_jobs_shuffled = shuffle(perm_jobs)
     rep[perm_jobs] = rep[perm_jobs_shuffled]
@@ -136,8 +136,8 @@ function Crossover_(emp::Country, colony::Country, r::Vector{Int64}, p::Vector{I
 end
 
 function Revolution(colony::Country, chance::Float64, r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64}, d_bar::Vector{Int64},
-        e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64}, roulette::Vector{Int}, n_iter::Int, max_iter::Int)
-    chance = chance * max(0.1, 1-n_iter/max_iter)
+        e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64}, roulette::Vector{Int}, n_iter::Int, max_iter::Int, rev_div::Int)
+    chance = chance * max(0.1, (1-n_iter/max_iter)/rev_div)
 #     if n_iter%50==0
 #         println(chance)
 #     end
@@ -329,24 +329,27 @@ end
 
 
 function Inner_Competition(Empires::Vector{Empire}, r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64}, d_bar::Vector{Int64},
-        e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64}, roulette::Vector{Int}, n_iter::Int, max_iter::Int)
+        e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64}, roulette::Vector{Int}, n_iter::Int, max_iter::Int,
+         assim_prob::Float64, swap_div::Int, perm_div::Int, rev_div::Int)
     for emp = 1:length(Empires)
         for c = 1:length(Empires[emp].colonies)
 #             probs = roulette/sum(roulette)
-            Assimilate(Empires[emp].colonies[c], Empires[emp].emperor, r, p, d, d_bar, e, w, S, 0.2)
-            Assimilate2(Empires[emp].colonies[c], Empires[emp].emperor, r, p, d, d_bar, e, w, S)
+
+            Assimilate(Empires[emp].colonies[c], Empires[emp].emperor, r, p, d, d_bar, e, w, S, assim_prob)
+
             probs = [0.4, 0.2, 0.4, 0.0]
             random_number = rand()
             which = 0
             if random_number < probs[1]
                 which = 1
-                colony = Swap_n(Empires[emp].colonies[c], r, p, d, d_bar, e, w, S, roulette, n_iter, max_iter)
+                colony = Swap_n(Empires[emp].colonies[c], r, p, d, d_bar, e, w, S, roulette, n_iter, max_iter, swap_div)
             elseif random_number < probs[2]+probs[1]
                 which = 2
-                colony = Perm_n(Empires[emp].colonies[c], r, p, d, d_bar, e, w, S, roulette, n_iter, max_iter)
+                colony = Perm_n(Empires[emp].colonies[c], r, p, d, d_bar, e, w, S, roulette, n_iter, max_iter, perm_div)
             elseif random_number < probs[2]+probs[1]+probs[3]
                 which = 3
-                colony = Revolution(Empires[emp].colonies[c], 0.5*(Empires[emp].emperor.power-Empires[emp].colonies[c].power)/Empires[emp].emperor.power, r, p, d, d_bar, e, w, S, roulette, n_iter, max_iter)
+                colony = Revolution(Empires[emp].colonies[c], 0.5*(Empires[emp].emperor.power-Empires[emp].colonies[c].power)/Empires[emp].emperor.power,
+                 r, p, d, d_bar, e, w, S, roulette, n_iter, max_iter,rev_div)
             else
                 colony = Crossover_(Empires[emp].emperor, Empires[emp].colonies[c], r, p, d, d_bar, e, w, S, roulette)
             end
