@@ -49,8 +49,8 @@ function test(order::Int, Tao::Int, R::Int, instance::Int, num_runs::Int, assim_
         # println("Objective=", best, " run time=",run_time)
     end
     # println("Assimilation probability: ", assim_prob, " swap div: ", swap_div, " perm div: ", perm_div, " rev div: ", rev_div)
-    println("Mean Objective=", obj_sum/num_runs)
-    println(time_sum/num_runs, " seconds on average")
+    println(instance, " Mean Objective=", obj_sum/num_runs)
+    # println(time_sum/num_runs, " seconds on average")
     return obj_sum/num_runs
 end
 function test_parameters()
@@ -85,5 +85,5 @@ end
 
 # test_parameters()
 for instance=1:10
-    test(50,1,9,instance, 1, 0.2, 10, 5, 5)
+    test(20,3,3,instance, 1, 0.2, 10, 5, 5)
 end
