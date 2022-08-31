@@ -27,13 +27,14 @@ include("SA.jl")
 # for i in Empires[4].colonies[5].representation
 #     print(i, " ")
 # end
-function test(order::Int, Tao::Int, R::Int, instance::Int, num_runs::Int, assim_prob::Float64, swap_div::Int, perm_div::Int, rev_div::Int)
+function test(order::Int, Tao::Int, R::Int, instance::Int, num_runs::Int,
+     assim_prob::Float64, swap_div::Int, perm_div::Int, rev_div::Int, n_emp::Int, eps::Float64)
     # order = 50
     # Tao = 1
     # R = 1
     # instance = 1
-    n_emp = 5
-    eps = 0.3
+    # n_emp = 5
+    # eps = 0.3
     popsize_multiplier = 4
     stopping_count = 20
     t0 = 10000.0
@@ -49,41 +50,42 @@ function test(order::Int, Tao::Int, R::Int, instance::Int, num_runs::Int, assim_
         # println("Objective=", best, " run time=",run_time)
     end
     # println("Assimilation probability: ", assim_prob, " swap div: ", swap_div, " perm div: ", perm_div, " rev div: ", rev_div)
-    println(instance, " Mean Objective=", obj_sum/num_runs)
+    println("Order:",order," Tao:", Tao, " R=", R , " instance=", instance, " Objective=", obj_sum/num_runs, " Time=", round(time_sum/num_runs, digits=2))
     # println(time_sum/num_runs, " seconds on average")
-    return obj_sum/num_runs
+    return obj_sum/num_runs, time_sum/num_runs
 end
-function test_parameters()
-    probs = [0.2]
-    swaps_divs = [10, 20, 30]
-    perm_divs = [5, 10, 20]
-    rev_divs = [1, 5, 10]
-    best_obj = 0.0
-    best_swap_div = 0
-    best_perm_div = 0
-    best_rev_div = 0
-    for assim_prob in probs
-        for swap_div in swaps_divs
-            for perm_div in perm_divs
-                for rev_div in rev_divs
-                    obj = test(10, assim_prob, swap_div, perm_div, rev_div)
-                    if obj > best_obj
-                        best_obj = obj
-                        best_perm_div = perm_div
-                        best_swap_div = swap_div
-                        best_rev_div = rev_div
-                    end
+
+
+function test_parameters(n_emp::Int, eps::Float64)
+    assim_prob = 0.2
+    swap_div = 10
+    perm_div = 10
+    rev_div = 10
+    orders = [10, 15, 20] #, 25, 50, 100]
+    Taos = [1, 3, 5, 7, 9]
+    Rs = [1, 3, 5, 7, 9]
+    experiment_instances = Vector{Vector{Vector{Vector{Int}}}}()
+    for order in orders
+        experiments2 = Vector{Vector{Vector{Int}}}()
+        for Tao in Taos
+            experiments1 = Vector{Vector{Int}}()
+            for R_ in Rs
+                 push!(experiments1, sample(1:10, 2, replace=false))
+            end
+            push!(experiments2, experiments1)
+        end
+        push!(experiment_instances, experiments2)
+    end
+
+    for i=1:length(orders)
+        for j=1:length(Taos)
+            for k=1:length(Rs)
+                for instance in experiment_instances[i][j][k]
+                    obj, run_time = test(orders[i], Taos[j], Rs[k], instance, 1, assim_prob, swap_div, perm_div, rev_div, n_emp, eps)
                 end
             end
         end
     end
-
-    println("best swap div: " , best_swap_div)
-    println("best perm div: " , best_perm_div)
-    println("best rev div: " , best_rev_div)
 end
 
-# test_parameters()
-for instance=1:10
-    test(20,3,3,instance, 1, 0.2, 10, 5, 5)
-end
+test_parameters(5, 0.3)
