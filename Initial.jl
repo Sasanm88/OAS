@@ -224,7 +224,9 @@ function Generate_empires(num_emp::Int, world::Vector{Country}, eps::Float64)
         emp = Empire(world[i], Country[], 0.0)
         for j=1:num_colonies[i]-1
             index += 1
-            push!(emp.colonies, world[index])
+            if index <= length(world)
+                push!(emp.colonies, world[index])
+            end
 #             colony_power += world[index].power
         end
 #         emp.power += eps * colony_power

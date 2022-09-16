@@ -1,4 +1,5 @@
 using Random
+using XLSX
 
 mutable struct Country
     representation::Vector{Int}
@@ -97,4 +98,26 @@ function Calculate_from_sequence(seq::Vector{Int}, r::Vector{Int64}, p::Vector{I
         old_job = new_job
     end
     return total_r
+end
+
+
+function Write_to_excel(exfile::String, sheetnumber::Int, row::Int, t0::Float64, tN::Float64, order::Int, Tao::Int, R::Int, best::Float64, time::Float64)
+
+    XLSX.openxlsx(exfile, mode="rw") do xf
+        sheet = xf[sheetnumber]
+        sheet["A"*string(1)] = "t0"
+        sheet["B"*string(1)] = t0
+        sheet["C"*string(1)] = "tN"
+        sheet["D"*string(1)] = tN
+        sheet["A"*string(2)] = "order"
+        sheet["B"*string(2)] = "Tao"
+        sheet["C"*string(2)] = "R"
+        sheet["D"*string(2)] = "Obj"
+        sheet["E"*string(2)] = "Time"
+        sheet["A"*string(row)] = order
+        sheet["B"*string(row)] = Tao
+        sheet["C"*string(row)] = R
+        sheet["D"*string(row)] = best
+        sheet["E"*string(row)] = time
+    end
 end
