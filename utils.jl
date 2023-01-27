@@ -121,3 +121,26 @@ function Write_to_excel(exfile::String, sheetnumber::Int, row::Int, t0::Float64,
         sheet["E"*string(row)] = time
     end
 end
+
+function Write_to_excel_new(exfile::String, sheetnumber::Int, row::Int, Tao::Int, R::Int, instance::Int, 
+     objs::Vector{Float64}, run_times::Vector{Float64})
+
+    obj_chars = ["D", "F", "H", "J", "L", "N", "P", "R", "T", "V"]
+    time_chars = ["E", "G", "I", "K", "M", "O", "Q", "S", "U", "W"]
+    XLSX.openxlsx(exfile, mode="rw") do xf
+        sheet = xf[sheetnumber]
+        sheet["A"*string(1)] = "Tao"
+        sheet["B"*string(1)] = "R"
+        sheet["C"*string(1)] = "Instance"
+        sheet["A"*string(row)] = Tao
+        sheet["B"*string(row)] = R
+        sheet["C"*string(row)] = instance
+
+        for i=1:10
+            sheet[obj_chars[i]*string(1)] = "Obj "* string(i)
+            sheet[time_chars[i]*string(1)] = "Time "* string(i)
+            sheet[obj_chars[i]*string(row)] = objs[i]
+            sheet[time_chars[i]*string(row)] = run_times[i]
+        end
+    end
+end
