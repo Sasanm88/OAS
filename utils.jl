@@ -6,12 +6,24 @@ mutable struct Country
     power::Float64
 end
         
+
 mutable struct Empire
     emperor::Country
     colonies::Vector{Country}
     power::Float64
 end
 
+function Find_best_solution(empires::Vector{Empire})
+    best_obj = 0.0
+    best_rep = Int[]
+    for emp in empires
+        if emp.emperor.power > best_obj
+            best_obj = emp.emperor.power
+            best_rep = emp.emperor.representation
+        end
+    end
+    return Convert_to_sequence(best_rep)
+end
 
 function Random_representation(n_jobs::Int, selected_percentage::Float64)
     perc = (0.6 + 0.8 * rand())*selected_percentage
@@ -52,7 +64,7 @@ function Calculate_C(seq::Vector{Int}, r::Vector{Int64}, p::Vector{Int64}, S::Ma
     old_job = 0
     for i = 1:length(seq)
         new_job = seq[i]
-        C = max(C+ S[old_job+1, new_job+1], r[new_job]) + p[new_job]
+        C = max(C, r[new_job]) + S[old_job+1, new_job+1] + p[new_job]
         old_job = new_job
     end
     return C
@@ -67,15 +79,12 @@ function Calculate_from_representation(rep::Vector{Int}, r::Vector{Int64}, p::Ve
         end
     end
     total_r = 0.0
-    C = 0
+    C = 0.0
     old_job = 0
     for i = 1:length(seq)
         new_job = seq[i]
-        C = max(C+ S[old_job+1, new_job+1], r[new_job]) + p[new_job]
-        if C > d_bar[new_job]
-            return 0.0
-        end
-        T = max(0, C-d[new_job])
+        C = max(C, r[new_job]) + S[old_job+1, new_job+1] + p[new_job]
+        T = max(0.0, C-d[new_job])
         total_r += max(0.0, e[new_job]-T*w[new_job])
         old_job = new_job
     end
@@ -85,15 +94,13 @@ end
 
 function Calculate_from_sequence(seq::Vector{Int}, r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64}, d_bar::Vector{Int64}, e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64})
     total_r = 0.0
-    C = 0
+    C = 0.0
     old_job = 0
     for i = 1:length(seq)
         new_job = seq[i]
-        C = max(C+ S[old_job+1, new_job+1], r[new_job]) + p[new_job]
-        if C > d_bar[new_job]
-            return 0.0
-        end
-        T = max(0, C-d[new_job])
+        C = max(C, r[new_job]) + S[old_job+1, new_job+1] + p[new_job]
+
+        T = max(0.0, C-d[new_job])
         total_r += max(0.0, e[new_job]-T*w[new_job])
         old_job = new_job
     end
@@ -143,4 +150,18 @@ function Write_to_excel_new(exfile::String, sheetnumber::Int, row::Int, Tao::Int
             sheet[time_chars[i]*string(row)] = run_times[i]
         end
     end
+end
+
+
+function Calculate_Comp_times(seq::Vector{Int}, r::Vector{Int64}, p::Vector{Int64}, S::Matrix{Int64})
+    comp = Float64[]
+    C = 0
+    old_job = 0
+    for i = 1:length(seq)
+        new_job = seq[i]
+        C = max(C, r[new_job]) + S[old_job+1, new_job+1] + p[new_job]
+        old_job = new_job
+        push!(comp, C)
+    end
+    return comp
 end

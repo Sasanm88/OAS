@@ -33,5 +33,5 @@ function Simulated_Anealing(order::Int, Tao::Int, R::Int, instance::Int, n_emp::
         i += 1
     end
     t2 = time()
-    return best, t2-t1
+    return best, t2-t1, Find_best_solution(Empires)
 end
