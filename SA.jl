@@ -9,14 +9,23 @@ function Simulated_Anealing(order::Int, Tao::Int, R::Int, instance::Int, n_emp::
     Empires = Vector{Empire}()
     old_obj = 0.0
     best = 0.0
+    nonimproving_count = 1
     while t > tN
+        if nonimproving_count % 100 ==0
+            Improve_Empires(Empires, r, p, d, d_bar, e, w, S)
+        end
         Empires, best = Imperialist_Competition(Empires, r, p, d, d_bar, e, w, S, roulette, i,
             Cooling_steps, n_emp, eps, popsize_multiplier, stopping_count, assim_prob, swap_div, perm_div, rev_div)
-        if i%50==0
+            if best > old_obj
+                nonimproving_count = 1
+            else
+                nonimproving_count += 1
+            end
+#         if i%50==0
 #             println(roulette)
-            # println("In step ",i, ", the temperature is ",round(t, digits=2),", the best function is: ", best, " roulet: ", roulette)
+#             println("In step ",i, ", the temperature is ",round(t, digits=2),", the best function is: ", best, " roulet: ", roulette)
 # #             println([emp.emperor.power for emp in Empires])
-        end
+#         end
         delete_at = Int[]
         for (i,emp) in enumerate(Empires)
             delta = emp.emperor.power - old_obj
@@ -33,5 +42,5 @@ function Simulated_Anealing(order::Int, Tao::Int, R::Int, instance::Int, n_emp::
         i += 1
     end
     t2 = time()
-    return best, t2-t1, Find_best_solution(Empires)
+    return best, t2-t1 #, Find_best_solution(Empires)
 end

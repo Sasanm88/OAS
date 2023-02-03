@@ -131,7 +131,7 @@ end
 
 function Write_to_excel_new(exfile::String, sheetnumber::Int, row::Int, Tao::Int, R::Int, instance::Int, 
      objs::Vector{Float64}, run_times::Vector{Float64})
-
+    sheetnumber = 1
     obj_chars = ["D", "F", "H", "J", "L", "N", "P", "R", "T", "V"]
     time_chars = ["E", "G", "I", "K", "M", "O", "Q", "S", "U", "W"]
     XLSX.openxlsx(exfile, mode="rw") do xf

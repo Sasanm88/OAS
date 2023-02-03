@@ -5,6 +5,7 @@ include("Inner_Comp.jl")
 include("Outer_Comp.jl")
 include("Read_data.jl")
 include("SA.jl")
+include("Escape.jl")
 
 
 
@@ -59,7 +60,7 @@ function Solve_all()
     num_runs = 10
     t0 = 1000.0
     tN = 1.0
-    orders = [10] # [10, 15, 20, 25, 50, 100]
+    orders = [10, 15, 20, 25, 50, 100]
     Taos = [1, 3, 5, 7, 9]
     Rs = [1, 3, 5, 7, 9]
     for (sheet, order) in enumerate(orders)
@@ -68,7 +69,8 @@ function Solve_all()
             for R in Rs
                 for instance=1:10
                     objs, run_times = test(order, Tao, R, instance, num_runs, assim_prob, swap_div, perm_div, rev_div, n_emp, eps, t0, tN)
-                    Write_to_excel_new("Results1.xlsx", sheet, row, Tao, R, instance, objs, run_times)
+                    file_name = "Results" * string(order) * ".xlsx"
+                    Write_to_excel_new(file_name, sheet, row, Tao, R, instance, objs, run_times)
                     row +=1 
                 end
             end
@@ -120,82 +122,54 @@ function test_single(order::Int, Tao::Int, R::Int, instance::Int)
 
    println("Order:",order," Tao:", Tao, " R=", R , " instance=", instance)
    
-   Read_and_print(order, Tao, R, instance)
+#    Read_and_print(order, Tao, R, instance)
     best , run_time, solution = Simulated_Anealing(order, Tao, R, instance, n_emp, eps, popsize_multiplier,
        stopping_count, t0, tN, Cooling_steps, assim_prob, swap_div, perm_div, rev_div)
-    # solution = [5,2,1,9,8,7,10]  
+       
     println()
-    print("Solution: ")
-    for i in solution
+    println("It took ", run_time, " seconds")
+   println("Before Improvement:")
+   println("Best Objective is: ", best)
+   println("Solution is: ")
+   for i in solution
         print(i, ", ")
-    end
-    println()
-    println("Objective=", best, ", Time=", round(run_time, digits=2))
-    r, p, d, d_bar, e, w, S = Read_one_instance(order, Tao, R, instance)
-    comp = Calculate_Comp_times(solution, r, p, S)
-    println()
-    print("Completion times: ")
-    for i in comp
-        print(i, ", ")
-    end
-    println()
-    print("r: ")
-    for i in solution
-        print(r[i], ", ")
-    end
-    println()
-    print("p: ")
-    for i in solution
-        print(p[i], ", ")
-    end
-    println()
-    print("S: ")
-    temp = 0
-    for i in solution
-        print(S[temp+1,i+1], ", ")
-        temp = i
-    end
-    println()
-    print("d: ")
-    for i in solution
-        print(d[i], ", ")
-    end
-    println()
-    print("dbar: ")
-    for i in solution
-        print(d_bar[i], ", ")
-    end
-    println()
-    print("e: ")
-    for i in solution
-        print(e[i], ", ")
-    end
-    println()
-    print("w: ")
-    for i in solution
-        print(w[i], ", ")
-    end
-    println()
-    
-    # comp = Calculate_Comp_times(solution, r, p, S)
-    total_r = 0.0
-    for (j,i) in enumerate(solution)
-        if comp[j] < d_bar[i]
-            if comp[j] <= d[i] 
-                total_r += e[i]
-            else
-                total_r += e[i] - w[i] * (comp[j]-d[i])
-            end
-        end
-        # T = max(0.0, comp[j]-d[i])
-        # total_r += max(0.0, e[i]-T*w[i])
-    end
-    println("Obj= ", total_r)
+   end
+   r, p, d, d_bar, e, w, S = Read_one_instance(order, Tao, R, instance)
+   t1 = time()
+   final_solution = Improve(500000, 20, 0.1, solution, best, r, p , d, d_bar, e, w, S)
+   t2 = time()
+   println()
+   println()
+   println("After Improvement:")
+   println("Best Objective is: ", final_solution[1].power)
+   println("Solution is: ")
+   for i in final_solution[1].representation
+        print(i, " ")
+   end
+   println()
+   println("It took ", t2-t1, " seconds")
 end
 
+# test_single(50, 9, 9, 4)
 
+# function test_Improvement()
+#     solution = [54, 18, 24, 93, 81, 75, 60, 13, 73, 32, 87, 58, 33, 43, 23, 19, 98, 17, 88, 96, 76, 16, 86, 89, 79, 35, 77, 25, 100, 5, 39, 
+#     65, 41, 11, 31, 44, 59, 4, 2, 64, 72, 48, 15, 61, 83, 70, 12, 69, 94, 47, 6, 80, 90, 78, 20, 95, 91, 62, 21, 97, 28, 46, 68, 8, 82, 22, 
+#     92, 38, 84, 66, 71, 85, 55, 99, 9, 45, 63, 34, 40, 36, 57, 1, 29, 42, 74, 30, 26, 37, 10, 50, 3, 51, 7, 56, 14, 67, 27, 49, 53, 52]
+#     r, p, d, d_bar, e, w, S = Read_one_instance(100, 9 , 1, 6)
+#     best = 838.0
+#     a = [50, 100 , 200, 300, 500]
+#     b = [0.01, 0.02, 0.05, 0.1, 0.15]
+#     for x in a
+#         for y in b
+#             final_solution = Improve(100000, x, y, solution, best, r, p , d, d_bar, e, w, S)
+#             println("Buffer size=", x, " ,allowed difference=",y, " ,Obj=", final_solution.power)
+#         end
+#     end
+# end
 
-# test_single(10,9,7,10)
+# test_Improvement()
+
 # function compare_parameters()
 #     orders = [10, 15, 20, 25, 50, 100]
 #     Taos = [1, 3, 5, 7, 9]
