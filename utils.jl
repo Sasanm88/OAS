@@ -165,3 +165,14 @@ function Calculate_Comp_times(seq::Vector{Int}, r::Vector{Int64}, p::Vector{Int6
     end
     return comp
 end
+
+function Compute_Cumulative_Probabilities(roulette::Vector{Int})
+    probs = roulette/sum(roulette)
+    probs_c = Float64[]
+    summ = 0.0
+    for i=1:length(roulette)
+        summ += probs[i]
+        push!(probs_c, summ)
+    end
+    return probs_c
+end

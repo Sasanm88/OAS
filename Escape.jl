@@ -146,11 +146,11 @@ end
 
 function Improve_Empires(Empires::Vector{Empire}, r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64}, 
     d_bar::Vector{Int64}, e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64})
-    n_jobs = length(r)
+    # n_jobs = length(r)
     best, best_f = Find_the_local_optima(Empires)
-    Substitues = Improve(100000, 50, 0.1,best, best_f, r, p, d, d_bar, e, w, S)
+    Substitues = Improve(500000, 50, 0.1,best, best_f, r, p, d, d_bar, e, w, S)
     for (i,emp) in enumerate(Empires)
-        emp.emperor.representation = Convert_to_representation(n_jobs, Substitues[i].representation)
+        emp.emperor.representation = Substitues[i].representation
         emp.emperor.power = Substitues[i].power
     end
 end
@@ -165,5 +165,5 @@ function Find_the_local_optima(empires::Vector{Empire})
             best_rep = emp.emperor.representation
         end
     end
-    return Convert_to_sequence(best_rep), best_obj
+    return best_rep, best_obj
 end

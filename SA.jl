@@ -5,7 +5,7 @@ function Simulated_Anealing(order::Int, Tao::Int, R::Int, instance::Int, n_emp::
     t1 = time()
     t = t0
     i = 1
-    roulette = [100,100,100,100]
+    roulette = ones(Int, 11) * 100
     Empires = Vector{Empire}()
     old_obj = 0.0
     best = 0.0
@@ -21,11 +21,9 @@ function Simulated_Anealing(order::Int, Tao::Int, R::Int, instance::Int, n_emp::
             else
                 nonimproving_count += 1
             end
-#         if i%50==0
-#             println(roulette)
-#             println("In step ",i, ", the temperature is ",round(t, digits=2),", the best function is: ", best, " roulet: ", roulette)
-# #             println([emp.emperor.power for emp in Empires])
-#         end
+        if i%50==0
+            println("In step ",i, ", the temperature is ",round(t, digits=2),", the best function is: ", best)
+        end
         delete_at = Int[]
         for (i,emp) in enumerate(Empires)
             delta = emp.emperor.power - old_obj

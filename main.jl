@@ -78,7 +78,7 @@ function Solve_all()
     end
 end
 
-Solve_all()
+# Solve_all()
 
 
 function test_parameters(sheet_num::Int, experiment_instances::Vector{Vector{Vector{Vector{Int}}}}, n_emp::Int, eps::Float64, t0::Float64, tN::Float64)
@@ -123,34 +123,34 @@ function test_single(order::Int, Tao::Int, R::Int, instance::Int)
    println("Order:",order," Tao:", Tao, " R=", R , " instance=", instance)
    
 #    Read_and_print(order, Tao, R, instance)
-    best , run_time, solution = Simulated_Anealing(order, Tao, R, instance, n_emp, eps, popsize_multiplier,
+    best , run_time = Simulated_Anealing(order, Tao, R, instance, n_emp, eps, popsize_multiplier,
        stopping_count, t0, tN, Cooling_steps, assim_prob, swap_div, perm_div, rev_div)
        
-    println()
-    println("It took ", run_time, " seconds")
-   println("Before Improvement:")
-   println("Best Objective is: ", best)
-   println("Solution is: ")
-   for i in solution
-        print(i, ", ")
-   end
-   r, p, d, d_bar, e, w, S = Read_one_instance(order, Tao, R, instance)
-   t1 = time()
-   final_solution = Improve(500000, 20, 0.1, solution, best, r, p , d, d_bar, e, w, S)
-   t2 = time()
-   println()
-   println()
-   println("After Improvement:")
-   println("Best Objective is: ", final_solution[1].power)
-   println("Solution is: ")
-   for i in final_solution[1].representation
-        print(i, " ")
-   end
-   println()
-   println("It took ", t2-t1, " seconds")
+#     println()
+#     println("It took ", run_time, " seconds")
+#    println("Before Improvement:")
+#    println("Best Objective is: ", best)
+#    println("Solution is: ")
+#    for i in solution
+#         print(i, ", ")
+#    end
+#    r, p, d, d_bar, e, w, S = Read_one_instance(order, Tao, R, instance)
+#    t1 = time()
+#    final_solution = Improve(500000, 20, 0.1, solution, best, r, p , d, d_bar, e, w, S)
+#    t2 = time()
+#    println()
+#    println()
+#    println("After Improvement:")
+#    println("Best Objective is: ", final_solution[1].power)
+#    println("Solution is: ")
+#    for i in final_solution[1].representation
+#         print(i, " ")
+#    end
+#    println()
+#    println("It took ", t2-t1, " seconds")
 end
 
-# test_single(50, 9, 9, 4)
+test_single(100, 5, 5, 5)
 
 # function test_Improvement()
 #     solution = [54, 18, 24, 93, 81, 75, 60, 13, 73, 32, 87, 58, 33, 43, 23, 19, 98, 17, 88, 96, 76, 16, 86, 89, 79, 35, 77, 25, 100, 5, 39, 

@@ -54,7 +54,7 @@ function Heuristic_Initial(r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64},
         end
     end
 #     println("hueristic: ", best_f)
-    return Country(Convert_to_representation(n, seq), best_f)
+    return Country(seq, best_f)
 end
 
 
@@ -78,9 +78,9 @@ end
 
 
 function Revolution_heuristic(colony::Country, chance::Float64, r::Vector{Int64}, p::Vector{Int64}, d::Vector{Int64}, d_bar::Vector{Int64}, e::Vector{Int64}, w::Vector{Float64}, S::Matrix{Int64})
-    rep = copy(colony.representation)
-    max_job = maximum(rep)
     n_jobs = length(p)
+    rep = copy(Convert_to_representation(n_jobs, colony.representation))
+    max_job = maximum(rep)
     zero = count(x->x==0, rep)
     nonzero = n_jobs - zero
     P_init = 0.85
@@ -156,9 +156,7 @@ function Revolution_heuristic(colony::Country, chance::Float64, r::Vector{Int64}
         end
         rep[i] = new
     end
-#     println(rep, max_job)
-    power = Calculate_from_representation(rep, r, p, d, d_bar, e, w, S)
-    return Country(rep, power)
+    return Convert_to_sequence(rep)
 end
 
 function Generate_initial_world(num_countries::Int, prev_empires::Vector{Empire}, r::Vector{Int64},
@@ -169,37 +167,31 @@ function Generate_initial_world(num_countries::Int, prev_empires::Vector{Empire}
         world = Vector{Country}()
         heuristic = Heuristic_Initial(r, p, d, d_bar, e, w, S)
         push!(world, heuristic)
-        for i = 1:div(num_countries,3)
-            push!(world, Swap_one_heuristic(heuristic, r, p, d, d_bar, e, w, S))
-        end
-#         for i = 1:div(num_countries,6)
-#             push!(world, Swap_two_heuristic(heuristic, r, p, d, d_bar, e, w, S))
-#         end
-        for i = 1:div(num_countries,3)
-            push!(world, Revolution_heuristic(heuristic, chance, r, p, d, d_bar, e, w, S))
+        for i = 1:div(num_countries,2)
+            seq = Revolution_heuristic(heuristic, chance, r, p, d, d_bar, e, w, S)
+            push!(world, Country(seq, Calculate_from_sequence(seq, r, p, d, d_bar, e, w, S)))
         end
         for i=1:num_countries-length(world)
             rep = Random_representation(n_jobs, maximum(heuristic.representation)/n_jobs)
-            push!(world, Country(rep, Calculate_from_representation(rep, r, p, d, d_bar, e, w, S)))
+            seq = Convert_to_sequence(rep)
+            push!(world, Country(seq, Calculate_from_sequence(seq, r, p, d, d_bar, e, w, S)))
         end
     else
         n_emp = length(prev_empires)
         world = Vector{Country}()
         perc = 0.0
         for Empire in prev_empires
-            perc = maximum(Empire.emperor.representation)/n_jobs
+            perc = length(Empire.emperor.representation)/n_jobs
             push!(world, Empire.emperor)
             for i = 1:div(num_countries, n_emp+1)-1
-                if rand() < 0.5
-                    push!(world, Swap_one_heuristic(Empire.emperor, r, p, d, d_bar, e, w, S))
-                else
-                    push!(world, Revolution_heuristic(Empire.emperor, chance, r, p, d, d_bar, e, w, S))
-                end
+                seq = Revolution_heuristic(Empire.emperor, chance, r, p, d, d_bar, e, w, S)
+                push!(world, Country(seq, Calculate_from_sequence(seq, r, p, d, d_bar, e, w, S)))
             end
         end
         for i=1:num_countries-length(world)
             rep = Random_representation(n_jobs, perc)
-            push!(world, Country(rep, Calculate_from_representation(rep, r, p, d, d_bar, e, w, S)))
+            seq = Convert_to_sequence(rep)
+            push!(world, Country(seq, Calculate_from_sequence(seq, r, p, d, d_bar, e, w, S)))
         end
     end
     sort!(world, by=x->x.power, rev = true)
